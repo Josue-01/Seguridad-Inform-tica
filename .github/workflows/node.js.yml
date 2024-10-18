@@ -59,22 +59,8 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Docker image
-      run: docker build -t enriquemr171/chat-una-app:latest .
+      run: docker build -t josue96/UNA-CHAT-JOSUE:latest .
     - name: Push Docker image
-      run: docker push enriquemr171/chat-una-app:latest
+      run: docker push josue96/UNA-CHAT-JOSUE:latest
   
-  deploy:
-    runs-on: ubuntu-latest
-    needs: docker
-    steps:
-  
-    - name: Azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: "CHATUNA"  
-        images: "enriquemr171/chat-una-app:latest"
+
