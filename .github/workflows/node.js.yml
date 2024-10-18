@@ -59,8 +59,8 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Docker image
-      run: docker build -t josue96/UNA-CHAT-JOSUE:latest .
+      run: docker build -t josue96/UNA-CHAT JOSUE:latest .
     - name: Push Docker image
-      run: docker push josue96/UNA-CHAT-JOSUE:latest
+      run: docker push josue96/UNA-CHAT JOSUE:latest
   
 
