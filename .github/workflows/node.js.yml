@@ -1,6 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
+# Este flujo de trabajo realiza una instalación limpia de las dependencias de Node, las almacena en caché/restaura, construye el código fuente y ejecuta pruebas en diferentes versiones de Node
 name: UNA-CHAT JOSUE
 
 on:
@@ -8,6 +6,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,9 +23,36 @@ jobs:
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
-  test:
+
+  lint:
     runs-on: ubuntu-latest
     needs: build
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    - name: Run ESLint
+      run: npm run lint
+
+  sast:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [build, lint, sast]
     strategy:
       matrix:
         node-version: [20.x]
@@ -44,15 +70,13 @@ jobs:
       run: npm list
     - name: Run tests
       run: npm test
-  docker:
+
+  docker-scan:
     runs-on: ubuntu-latest
     needs: test
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
@@ -60,7 +84,31 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Docker image
       run: docker build -t josue96/chat-una-app:latest .
-    - name: Push Docker image
+    - name: Scan Docker image for vulnerabilities
+      uses: aquasecurity/trivy-action@v0.6.1
+      with:
+        image-ref: josue96/chat-una-app:latest
+    - name: Push Docker image if scan passes
+      if: success()
       run: docker push josue96/chat-una-app:latest
-  
 
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: docker-scan
+    steps:
+    - name: Deploy to Staging Environment
+      env:
+        STAGING_SERVER: ${{ secrets.STAGING_SERVER }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+        ssh -o StrictHostKeyChecking=no $STAGING_SERVER 'docker pull josue96/chat-una-app:latest && docker-compose up -d'
+
+  nuclei-scan:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    steps:
+    - name: Run Nuclei Security Scans
+      uses: projectdiscovery/nuclei-action@v1
+      with:
+        url: ${{ secrets.STAGING_URL }}
