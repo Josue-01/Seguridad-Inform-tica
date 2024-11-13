@@ -1,13 +1,19 @@
 {
   "dependencies": {
-    "express": "*",
-    "socket.io": "*"
+    "@okta/oidc-middleware": "^5.4.2",
+    "express": "^4.18.2",
+    "express-openid-connect": "^0.5.0",
+    "express-session": "^1.18.1",
+    "socket.io": "^4.6.1"
   },
   "scripts": {
     "start": "node server.js",
     "test": "mocha"
   },
   "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "eslint": "^9.14.0",
+    "globals": "^15.12.0",
     "mocha": "^10.7.3"
   }
 }
