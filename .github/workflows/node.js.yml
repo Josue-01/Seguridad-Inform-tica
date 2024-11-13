@@ -1,4 +1,3 @@
-# Este flujo de trabajo realiza una instalación limpia de las dependencias de Node, las almacena en caché/restaura, construye el código fuente y ejecuta pruebas en diferentes versiones de Node
 name: UNA-CHAT JOSUE
 
 on:
@@ -43,12 +42,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/init@v2
+    - name: Set up Semgrep
+      uses: returntocorp/semgrep-action@v1
       with:
-        languages: javascript
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+        config: 'auto'  # Usa las reglas automáticas de Semgrep; se puede personalizar con un archivo de reglas si lo tienes
+    - name: Run Semgrep SAST Scan
+      run: semgrep --config auto  # Escanea el código en busca de vulnerabilidades y problemas de estilo
 
   test:
     runs-on: ubuntu-latest
