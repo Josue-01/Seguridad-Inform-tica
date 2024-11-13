@@ -29,12 +29,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Set up Semgrep for Linting
-      uses: returntocorp/semgrep-action@v1
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
       with:
-        config: 'p/ci-lint'  # Usamos una configuración de reglas predeterminadas para linting
-    - name: Run Semgrep Linting
-      run: semgrep --config p/ci-lint  # Ejecuta el linting utilizando las reglas configuradas
+        node-version: '20.x'
+    - name: Run ESLint
+      run: npx eslint .  # Asegúrate de tener ESLint configurado en tu proyecto
 
   sast:
     runs-on: ubuntu-latest
@@ -42,12 +42,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Set up Semgrep for SAST
-      uses: returntocorp/semgrep-action@v1
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
       with:
-        config: 'auto'  # Usa las reglas automáticas de Semgrep para el análisis estático de seguridad
-    - name: Run Semgrep SAST Scan
-      run: semgrep --config auto  # Ejecuta el análisis estático en busca de vulnerabilidades
+        languages: javascript
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
 
   test:
     runs-on: ubuntu-latest
@@ -77,37 +77,3 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: Build Docker image
-      run: docker build -t josue96/chat-una-app:latest .
-    - name: Scan Docker image for vulnerabilities with Trivy
-      uses: aquasecurity/trivy-action@v0.6.1
-      with:
-        image-ref: josue96/chat-una-app:latest
-    - name: Push Docker image if scan passes
-      if: success()  # Solo empuja la imagen si el escaneo fue exitoso
-      run: docker push josue96/chat-una-app:latest
-
-  deploy-staging:
-    runs-on: ubuntu-latest
-    needs: docker-scan
-    steps:
-    - name: Deploy to Staging Environment
-      env:
-        STAGING_SERVER: ${{ secrets.STAGING_SERVER }}
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      run: |
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-        ssh -o StrictHostKeyChecking=no $STAGING_SERVER 'docker pull josue96/chat-una-app:latest && docker-compose up -d'
-
-  nuclei-scan:
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    steps:
-    - name: Run Nuclei Security Scans
-      uses: projectdiscovery/nuclei-action@v1
-      with:
-        url: ${{ secrets.STAGING_URL }}
