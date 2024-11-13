@@ -29,12 +29,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
+    - name: Set up Semgrep for Linting
+      uses: returntocorp/semgrep-action@v1
       with:
-        node-version: '20.x'
-    - name: Run ESLint
-      run: npm run lint
+        config: 'p/ci-lint'  # Usamos una configuración de reglas predeterminadas para linting
+    - name: Run Semgrep Linting
+      run: semgrep --config p/ci-lint  # Ejecuta el linting utilizando las reglas configuradas
 
   sast:
     runs-on: ubuntu-latest
@@ -42,12 +42,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Set up Semgrep
+    - name: Set up Semgrep for SAST
       uses: returntocorp/semgrep-action@v1
       with:
-        config: 'auto'  # Usa las reglas automáticas de Semgrep; se puede personalizar con un archivo de reglas si lo tienes
+        config: 'auto'  # Usa las reglas automáticas de Semgrep para el análisis estático de seguridad
     - name: Run Semgrep SAST Scan
-      run: semgrep --config auto  # Escanea el código en busca de vulnerabilidades y problemas de estilo
+      run: semgrep --config auto  # Ejecuta el análisis estático en busca de vulnerabilidades
 
   test:
     runs-on: ubuntu-latest
@@ -83,12 +83,12 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     - name: Build Docker image
       run: docker build -t josue96/chat-una-app:latest .
-    - name: Scan Docker image for vulnerabilities
+    - name: Scan Docker image for vulnerabilities with Trivy
       uses: aquasecurity/trivy-action@v0.6.1
       with:
         image-ref: josue96/chat-una-app:latest
     - name: Push Docker image if scan passes
-      if: success()
+      if: success()  # Solo empuja la imagen si el escaneo fue exitoso
       run: docker push josue96/chat-una-app:latest
 
   deploy-staging:
