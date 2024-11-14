@@ -85,10 +85,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t josue96/chat-una-app:latest .
 
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.30.0/trivy_0.30.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.30.0_Linux-64bit.deb
+
       - name: Scan Docker image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.6.1
-        with:
-          image-ref: josue96/chat-una-app:latest
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL josue96/chat-una-app:latest
 
       - name: Push Docker image if scan passes
         if: success()
