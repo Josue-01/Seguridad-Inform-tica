@@ -68,8 +68,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # Job de escaneo de imágenes de Docker
-  docker-scan:
+  # Job de construcción y entrega de Docker
+  docker-delivery:
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -83,25 +83,27 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t josue96/chat-una-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest .
 
-      # Paso para instalar Trivy en el entorno
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
+
+  # Job de escaneo de vulnerabilidades de Docker
+  docker-scan:
+    needs: docker-delivery
+    runs-on: ubuntu-latest
+    steps:
       - name: Install Trivy
         run: |
-          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.33.0/trivy_0.33.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.56.2_Linux-64bit.deb
+          sudo dpkg -i trivy_0.56.2_Linux-64bit.deb
+          trivy --version  # Verifica la instalación
 
-      # Paso para actualizar la base de datos de Trivy (solo una vez)
-      - name: Update Trivy DB
+      - name: Scan Docker image for vulnerabilities with Trivy
         run: |
-          trivy --download-db-only
-
-      - name: Scan Docker image for vulnerabilities
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --skip-update josue96/chat-una-app:latest
-
-      - name: Push Docker image if scan passes
-        if: success()
-        run: docker push josue96/chat-una-app:latest
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --skip-update ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
 
   # Job de despliegue a ambiente de staging
   deploy-staging:
@@ -114,7 +116,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-          ssh -o StrictHostKeyChecking=no $STAGING_SERVER 'docker pull josue96/chat-una-app:latest && docker-compose up -d'
+          ssh -o StrictHostKeyChecking=no $STAGING_SERVER 'docker pull ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest && docker-compose up -d'
 
   # Job de monitoreo de seguridad con Nuclei en staging
   nuclei-scan:
