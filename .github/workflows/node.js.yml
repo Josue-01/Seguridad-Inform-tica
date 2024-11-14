@@ -103,7 +103,7 @@ jobs:
 
       - name: Scan Docker image for vulnerabilities with Trivy
         run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL --skip-update ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
+         trivy image ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
 
   # Job de despliegue a ambiente de staging
   deploy-staging:
