@@ -29,5 +29,5 @@ jobs:
       - name: List installed packages
         run: npm list
 
-      - name: Run tests
-        run: npm test
+      - name: Run SAST
+        run: npm SAST
