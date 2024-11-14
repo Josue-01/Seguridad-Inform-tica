@@ -1,4 +1,4 @@
-name: Test UNA-CHAT JOSUE
+name: SAST UNA-CHAT JOSUE
 
 on:
   push:
