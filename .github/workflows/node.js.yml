@@ -85,6 +85,11 @@ jobs:
       - name: Build Docker image
         run: docker build -t josue96/chat-una-app:latest .
 
+      # Paso para instalar Trivy en el entorno
+      - name: Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.33.0/trivy_0.33.0_Linux-64bit.tar.gz | tar xz -C /usr/local/bin
+
       # Paso para actualizar la base de datos de Trivy (solo una vez)
       - name: Update Trivy DB
         run: |
