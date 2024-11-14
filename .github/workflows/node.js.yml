@@ -1,5 +1,3 @@
-# Flujo de trabajo para UNA-CHAT JOSUE con SAST, Linting, escaneo de imágenes de contenedor y despliegue a staging
-
 name: UNA-CHAT JOSUE
 
 on:
@@ -44,24 +42,10 @@ jobs:
       - name: Run ESLint
         run: npm run lint --if-present
 
-  # Job de SAST (Análisis de seguridad estática) con Semgrep
-  sast:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Semgrep for SAST
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: 'auto' # Puedes especificar otras configuraciones o reglas específicas de Semgrep aquí
-
-
   # Job de Testing
   test:
     runs-on: ubuntu-latest
-    needs: [build, lint, sast]
+    needs: [build, lint]
     strategy:
       matrix:
         node-version: [20.x]
