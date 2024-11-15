@@ -90,36 +90,38 @@ jobs:
 
   # Job de escaneo de vulnerabilidades de Docker
   docker-scan:
-     needs: docker-delivery
-     runs-on: ubuntu-latest
-     steps:
-       - name: Install Trivy
-         run: |
-           sudo apt-get update
-           sudo apt-get install -y wget
-           # Descargar una versión específica conocida (por ejemplo, 0.41.0)
-           wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
-           sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
-           trivy --version  # Verifica la instalación
+    needs: docker-delivery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          # Descargar una versión específica conocida (por ejemplo, 0.41.0)
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
+          trivy --version  # Verifica la instalación
 
-
- 
   # Job de despliegue a ambiente de staging
-  deploy-staging:
+  deploy:
     runs-on: ubuntu-latest
     needs: docker-scan
     steps:
-      - name: Deploy to Staging Environment
-        env:
-          STAGING_SERVER: ${{ secrets.STAGING_SERVER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-          ssh -o StrictHostKeyChecking=no $STAGING_SERVER 'docker pull ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest && docker-compose up -d'
-  # Job de monitoreo de seguridad con Nuclei en staging
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "Proyecto-Info-Sec"
+          images: ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
+
+  # Job de escaneo de seguridad con Nuclei
   nuclei-scan:
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: deploy
     steps:
       - name: Run Nuclei Security Scans
         uses: projectdiscovery/nuclei-action@v1
