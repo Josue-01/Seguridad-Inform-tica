@@ -97,9 +97,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.56.2_Linux-64bit.deb
-          sudo dpkg -i trivy_0.56.2_Linux-64bit.deb
+          # Descargar la última versión de Trivy dinámicamente
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.deb
+          sudo dpkg -i trivy_Linux-64bit.deb
           trivy --version  # Verifica la instalación
+
  
   # Job de despliegue a ambiente de staging
   deploy-staging:
