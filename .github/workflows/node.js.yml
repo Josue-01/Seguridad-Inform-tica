@@ -90,17 +90,18 @@ jobs:
 
   # Job de escaneo de vulnerabilidades de Docker
   docker-scan:
-    needs: docker-delivery
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Trivy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget
-          # Descargar la última versión de Trivy dinámicamente
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.deb
-          sudo dpkg -i trivy_Linux-64bit.deb
-          trivy --version  # Verifica la instalación
+     needs: docker-delivery
+     runs-on: ubuntu-latest
+     steps:
+       - name: Install Trivy
+         run: |
+           sudo apt-get update
+           sudo apt-get install -y wget
+           # Descargar una versión específica conocida (por ejemplo, 0.41.0)
+           wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
+           sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
+           trivy --version  # Verifica la instalación
+
 
  
   # Job de despliegue a ambiente de staging
