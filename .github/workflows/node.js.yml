@@ -116,7 +116,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: "Proyecto-Info-Sec"
-          images: ${{ secrets.DOCKER_USERNAME }}/chat-una-app:latest
+          images: josue96/chat-una-app:latest
 
   # Job de escaneo de seguridad con Nuclei
   nuclei-scan:
