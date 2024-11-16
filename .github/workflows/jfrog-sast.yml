@@ -31,3 +31,11 @@ jobs:
 
       - name: Run test
         run: npm tes
+     # Agregar análisis de seguridad estático con Semgrep
+      - name: Install Semgrep
+        run: |
+          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0.tar.gz | tar xz
+          sudo mv semgrep /usr/local/bin
+
+      - name: Run Semgrep SAST
+        run: semgrep --config=auto .
