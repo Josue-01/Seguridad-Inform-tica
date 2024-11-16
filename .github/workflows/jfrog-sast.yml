@@ -32,12 +32,13 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Instalar Semgrep
-      - name: Install Semgrep binary
+      # Instalar Semgrep (binario comprimido .tar.gz)
+      - name: Install Semgrep
         run: |
-          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0 -o semgrep
-          chmod +x semgrep
+          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0.tar.gz -o semgrep.tar.gz
+          tar -xzf semgrep.tar.gz
           sudo mv semgrep /usr/local/bin
+          chmod +x /usr/local/bin/semgrep
 
       # Ejecutar el escáner de Semgrep SAST
       - name: Run Semgrep SAST
