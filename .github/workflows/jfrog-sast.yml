@@ -1,3 +1,5 @@
+name: SAST UNA-CHAT JOSUE
+
 on:
   push:
     branches: [ "main" ]
@@ -30,17 +32,18 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Integrar el escáner estático SAST (Semgrep)
-      - name: Install Semgrep
+      # Instalar Semgrep
+      - name: Install Semgrep binary
         run: |
           curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0 -o semgrep
           chmod +x semgrep
           sudo mv semgrep /usr/local/bin
 
+      # Ejecutar el escáner de Semgrep SAST
       - name: Run Semgrep SAST
-        run: semgrep --config=auto . || true  # Ejecuta Semgrep en el código fuente, siempre retorna 0 para no fallar el flujo
+        run: semgrep --config=auto .
 
-      # Opcional: Guardar el reporte de los resultados
+      # Guardar el reporte de Semgrep en formato JSON
       - name: Save Semgrep report
         run: |
           semgrep --config=auto . --json > semgrep-report.json
