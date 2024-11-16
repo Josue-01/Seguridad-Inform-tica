@@ -43,13 +43,11 @@ jobs:
 
       # Establecer CodeQL
       - name: Set up CodeQL
-        uses: github/codeql-action/setup@v2
+        uses: github/codeql-action/setup@v2 # Esta es la acción correcta para configurar CodeQL
 
       # Análisis de seguridad con CodeQL
       - name: Run CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: security
+        uses: github/codeql-action/analyze@v2 # Esta es la acción para ejecutar el análisis
 
       # Guardar los resultados del análisis
       - name: Save CodeQL results
