@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # Job de Testing
+  # Job de Testing y SAST
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -29,12 +29,14 @@ jobs:
       - name: List installed packages
         run: npm list
 
-      - name: Run test
-        run: npm tes
-     # Agregar análisis de seguridad estático con Semgrep
+      - name: Run tests
+        run: npm test
+
+      # Agregar análisis de seguridad estático con Semgrep
       - name: Install Semgrep
         run: |
-          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0.tar.gz | tar xz
+          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0.tar.gz -o semgrep.tar.gz
+          tar -xzf semgrep.tar.gz
           sudo mv semgrep /usr/local/bin
 
       - name: Run Semgrep SAST
