@@ -58,31 +58,3 @@ jobs:
         uses: github/codeql-action/analyze@v2
         # Esta acción realiza el análisis estático en busca de vulnerabilidades y otros problemas de seguridad
 
-  # Job de despliegue y análisis de seguridad (otros trabajos como despliegue, etc.)
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [codeql]  # Asegura que el despliegue solo suceda después de realizar el análisis
-    steps:
-      - name: Azure login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "Proyecto-Info-Sec"
-          images: josue96/chat-una-app:latest
-
-  # Job para escaneo de vulnerabilidades (si se requiere)
-  docker-scan:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Install Trivy
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
-          trivy --version
