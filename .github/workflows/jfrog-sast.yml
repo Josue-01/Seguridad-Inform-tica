@@ -32,20 +32,27 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Instalar Semgrep (binario comprimido .tar.gz)
-      - name: Install Semgrep
-        run: |
-          curl -sSL https://github.com/returntocorp/semgrep/releases/download/v0.64.0/semgrep-linux-amd64-v0.64.0.tar.gz -o semgrep.tar.gz
-          tar -xzf semgrep.tar.gz
-          sudo mv semgrep /usr/local/bin
-          chmod +x /usr/local/bin/semgrep
+  # Job de análisis estático con CodeQL
+  codeql:
+    name: Analyze code with CodeQL
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # Ejecutar el escáner de Semgrep SAST
-      - name: Run Semgrep SAST
-        run: semgrep --config=auto .
+      # Establecer CodeQL
+      - name: Set up CodeQL
+        uses: github/codeql-action/setup@v2
 
-      # Guardar el reporte de Semgrep en formato JSON
-      - name: Save Semgrep report
+      # Análisis de seguridad con CodeQL
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: security
+
+      # Guardar los resultados del análisis
+      - name: Save CodeQL results
         run: |
-          semgrep --config=auto . --json > semgrep-report.json
-          cat semgrep-report.json
+          mkdir -p $GITHUB_WORKSPACE/codeql-results
+          cp -r $CODEQL_DB_PATH/* $GITHUB_WORKSPACE/codeql-results/
