@@ -41,13 +41,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Establecer CodeQL
+      # Establecer CodeQL (usando la versión @v1)
       - name: Set up CodeQL
-        uses: github/codeql-action/setup@v2 # Esta es la acción correcta para configurar CodeQL
+        uses: github/codeql-action/setup@v1  # Usando la versión @v1
 
       # Análisis de seguridad con CodeQL
       - name: Run CodeQL Analysis
-        uses: github/codeql-action/analyze@v2 # Esta es la acción para ejecutar el análisis
+        uses: github/codeql-action/analyze@v2  # Mantener la versión v2 para el análisis
 
       # Guardar los resultados del análisis
       - name: Save CodeQL results
