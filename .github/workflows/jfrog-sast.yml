@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # Job de Testing y SAST (análisis estático de seguridad)
+  # Job de Testing
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -32,25 +32,57 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # Job de análisis estático con CodeQL
+  # Job 5: CodeQL (SAST - Static Code Analysis)
   codeql:
-    name: Analyze code with CodeQL
     runs-on: ubuntu-latest
-    needs: test
+    permissions:
+      actions: write
+      security-events: write
+    strategy:
+      matrix:
+        language: [ 'javascript' ]  # Aquí indicamos el lenguaje que queremos analizar (puedes agregar más si lo necesitas)
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Establecer CodeQL (usando la versión @v1)
-      - name: Set up CodeQL
-        uses: github/codeql-action/setup@v1  # Usando la versión @v1
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
 
-      # Análisis de seguridad con CodeQL
-      - name: Run CodeQL Analysis
-        uses: github/codeql-action/analyze@v2  # Mantener la versión v2 para el análisis
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        # La acción 'autobuild' intenta construir el código de manera automática para que el análisis funcione correctamente
 
-      # Guardar los resultados del análisis
-      - name: Save CodeQL results
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        # Esta acción realiza el análisis estático en busca de vulnerabilidades y otros problemas de seguridad
+
+  # Job de despliegue y análisis de seguridad (otros trabajos como despliegue, etc.)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [codeql]  # Asegura que el despliegue solo suceda después de realizar el análisis
+    steps:
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "Proyecto-Info-Sec"
+          images: josue96/chat-una-app:latest
+
+  # Job para escaneo de vulnerabilidades (si se requiere)
+  docker-scan:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Install Trivy
         run: |
-          mkdir -p $GITHUB_WORKSPACE/codeql-results
-          cp -r $CODEQL_DB_PATH/* $GITHUB_WORKSPACE/codeql-results/
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
+          trivy --version
