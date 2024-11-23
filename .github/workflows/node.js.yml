@@ -123,12 +123,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-      # Paso 1: Checkout del código
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Paso 2: Ejecutar Nuclei para escaneo de seguridad
-      - name: Run Nuclei
-        uses: projectdiscovery/nuclei-action@v2  # Cambia v2 por la versión correcta
-        with:
-          target: "http://example.com"  # URL a escanear
+      - name: Run Nuclei with Docker
+        run: |
+          docker run --rm -v $(pwd):/workdir projectdiscovery/nuclei -target http://example.com
